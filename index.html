@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>xAI image reader Web Chat</title>
+  <title>xAI Web Chat</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -46,6 +46,7 @@
     }
 
     #output {
+      display: none;
       background-color: white;
       padding: 20px;
       border-radius: 8px;
@@ -92,10 +93,10 @@
   <input type="text" id="userInput" placeholder="Type your message here" />
   <input type="file" id="imageUpload" accept="image/*" />
   <button onclick="getResponse()">Send</button>
+  <div id="loading"></div>
   <div id="output">
     <p><strong>Response:</strong></p>
   </div>
-  <div id="loading"></div>
 
   <script>
     let base64Image = null;
@@ -103,10 +104,20 @@
     // Function to handle image upload and convert it to base64
     document.getElementById("imageUpload").addEventListener("change", function(event) {
       const file = event.target.files[0];
+      const output = document.getElementById("output");
+
       if (file) {
         const reader = new FileReader();
         reader.onload = function(e) {
           base64Image = e.target.result.split(",")[1]; // Extract base64 data
+          const img = document.createElement("img");
+          img.src = e.target.result;
+          img.alt = "Uploaded Image";
+
+          // Show the output section with the uploaded image
+          output.style.display = "block";
+          output.innerHTML = ""; // Clear previous content
+          output.appendChild(img); // Display the uploaded image
         };
         reader.readAsDataURL(file);
       }
@@ -123,9 +134,9 @@
       const output = document.getElementById("output");
       const loading = document.getElementById("loading");
 
-      // Show loading indicator
+      // Hide output section and show loading indicator
+      output.style.display = "none";
       loading.style.display = "block";
-      output.innerHTML = ""; // Clear previous content
 
       const apiKey = "xai-U9sfq5bryKwbbOfR4UTWdoLmlHisHGnpKMvEVKrOTdKW0qBlZvUcSyD4GL3i2u0qGOrQkfS5oRKzVHOX"; // Replace with your actual API key
       const url = "https://api.x.ai/v1/chat/completions";
@@ -171,8 +182,10 @@
 
         const message = result.choices[0].message.content;
         output.innerHTML = "<p><strong>Response:</strong></p>" + "<p>" + message + "</p>";
+        output.style.display = "block"; // Show output section after response
       } catch (error) {
         output.innerHTML = "<p><strong>Error:</strong> " + error.message + "</p>";
+        output.style.display = "block"; // Show output section after error
       } finally {
         // Hide loading indicator after response is fetched
         loading.style.display = "none";
